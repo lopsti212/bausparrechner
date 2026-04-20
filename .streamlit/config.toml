@@ -1,5 +1,14 @@
 [server]
+address = "127.0.0.1"
+port = 8501
 enableXsrfProtection = true
+enableCORS = true
+headless = true
+maxUploadSize = 5
+
+[browser]
+gatherUsageStats = false
 
 [client]
 showErrorDetails = "stacktrace_only"
+toolbarMode = "minimal"
