@@ -1,0 +1,5 @@
+[server]
+enableXsrfProtection = true
+
+[client]
+showErrorDetails = "stacktrace_only"
