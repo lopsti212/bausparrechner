@@ -1,6 +1,6 @@
 """
 Historische Zinssätze Deutschland 2000-2025
-- baufinanzierung: Effektivzins Wohnungsbaukredite 5-10 J. Zinsbindung (Bundesbank SUD118)
+- baufinanzierung: Effektivzins Wohnungsbaukredite 5-10 J. Zinsbindung
 - bauspar_guthaben: Branchendurchschnitt Bausparvertrag-Guthabenzins
 - bauspar_darlehen: Branchendurchschnitt Bauspardarlehenszins
 - leitzins: EZB-Hauptrefinanzierungssatz zum Jahresende
@@ -37,8 +37,8 @@ ZINSEN_HISTORISCH = {
 
 STAND_ZINSEN = "April 2026"
 QUELLEN = (
-    "Bundesbank MFI-Zinsstatistik (SUD118), EZB-Leitzinsarchiv, "
-    "Geschäftsberichte Schwäbisch Hall/Wüstenrot/LBS, Interhyp-Zinsbarometer"
+    "Bundesbank MFI-Zinsstatistik, EZB-Leitzinsarchiv, "
+    "Branchendurchschnitte Bausparkassen"
 )
 
 

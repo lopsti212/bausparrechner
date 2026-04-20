@@ -1,5 +1,5 @@
 """
-Bausparrechner — Bauansparprogramm für Vertriebsberater
+Bausparrechner — Bauansparprogramm
 """
 
 import datetime
@@ -80,7 +80,7 @@ finanzierungssumme = st.sidebar.number_input(
     max_value=2_000_000.0,
     value=300_000.0,
     step=10_000.0,
-    help="Der Betrag, den der Kunde voraussichtlich zur Immobilienfinanzierung benötigt.",
+    help="Der Betrag, der voraussichtlich zur Immobilienfinanzierung benötigt wird.",
 )
 
 jahr_finanzierung = st.sidebar.number_input(
@@ -123,7 +123,7 @@ zins_bauspar_guthaben = st.sidebar.number_input(
     "Guthabenzins Bausparvertrag (% p. a.)",
     min_value=0.0,
     max_value=5.0,
-    value=0.5,
+    value=0.10,
     step=0.05,
     format="%.2f",
 )
@@ -132,10 +132,10 @@ zins_bauspar_darlehen = st.sidebar.number_input(
     "Darlehenszins Bausparvertrag (% p. a.)",
     min_value=1.0,
     max_value=6.0,
-    value=2.25,
+    value=1.40,
     step=0.05,
     format="%.2f",
-    help="Garantierter Zins für das Bauspardarlehen — Zinssicherung!",
+    help="Vertraglich festgelegter Zins des Bauspardarlehens.",
 )
 
 st.sidebar.markdown("## Marktzins-Annahmen")
@@ -298,8 +298,8 @@ with tab_ersp:
         elif ergebnis["ersparnis_zinsen"] > 0:
             st.info(
                 f"**Ergebnis:** Durch {sparjahre:.0f} Jahre Ansparen und den niedrigeren "
-                f"Bausparzins ({zins_bauspar_darlehen:.2f} % vs. {zins_markt_zukunft:.2f} % Marktzins) "
-                f"sparen Sie **{fmt_euro(ergebnis['ersparnis_zinsen'])}** an Zinskosten."
+                f"Bauspar-Darlehenszins ({zins_bauspar_darlehen:.2f} % vs. {zins_markt_zukunft:.2f} % Marktzins) "
+                f"ergibt sich eine rechnerische Zinsersparnis von **{fmt_euro(ergebnis['ersparnis_zinsen'])}**."
             )
         else:
             st.warning(
@@ -395,9 +395,9 @@ with tab_ersp:
 with tab_szen:
     st.markdown("### Was passiert bei späterem Start?")
     st.caption(
-        "Vergleich: Der Kunde fängt heute an vs. erst in 2/5/10 Jahren. "
+        "Vergleich eines sofortigen Starts mit einem Start in 2/5/10 Jahren. "
         "Je später gestartet wird, desto weniger Zeit bleibt zum Ansparen — "
-        "die Darlehenssumme steigt und die Ersparnis sinkt."
+        "die verbleibende Darlehenssumme steigt und die Ersparnis sinkt."
     )
 
     start_offsets = [0, 2, 5, 10]
@@ -450,9 +450,9 @@ with tab_szen:
 
     if len(szenarien) >= 2 and szenarien[-1].get("verlust_vs_sofort", 0) > 1000:
         verlust_10j = szenarien[-1]["verlust_vs_sofort"]
-        st.error(
-            f"**Vertriebsargument:** Ein um 10 Jahre verspäteter Start kostet Ihren Kunden "
-            f"rund **{fmt_euro(verlust_10j)}** zusätzliche Zinskosten."
+        st.info(
+            f"Ein um 10 Jahre verspäteter Start führt in diesem Beispiel zu "
+            f"rund **{fmt_euro(verlust_10j)}** zusätzlichen Zinskosten."
         )
 
 # ---------- TAB: CASHFLOW ----------
@@ -587,8 +587,8 @@ with tab_stress:
     max_ersp = max((s["ersparnis"] for s in stress), default=0)
     if max_ersp > 0:
         st.info(
-            f"Je höher die Zinsen steigen, desto wertvoller wird der Bausparvertrag: "
-            f"Im Extremfall (9 % Marktzins) sparen Sie bis zu **{fmt_euro(max_ersp)}** an Zinsen."
+            f"Bei einem Marktzins von 9 % ergibt sich in diesem Beispiel eine "
+            f"rechnerische Zinsersparnis von bis zu **{fmt_euro(max_ersp)}**."
         )
 
 # ---------- TAB: ZINSHISTORIE ----------
@@ -661,13 +661,13 @@ with tab_hist:
 
 # ---------- TAB: PDF EXPORT ----------
 with tab_export:
-    st.markdown("### PDF-Report für Kundenberatung")
+    st.markdown("### PDF-Report")
 
     col_e1, col_e2 = st.columns(2)
     with col_e1:
-        kunde_name = st.text_input("Kundenname", value="")
+        kunde_name = st.text_input("Name (optional)", value="")
     with col_e2:
-        beratung_datum = st.date_input("Beratungsdatum", value=datetime.date.today()).strftime("%d.%m.%Y")
+        beratung_datum = st.date_input("Datum", value=datetime.date.today()).strftime("%d.%m.%Y")
 
     if st.button("PDF erzeugen", type="primary"):
         eingaben = {

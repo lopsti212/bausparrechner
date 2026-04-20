@@ -1,46 +1,95 @@
-# Bausparrechner — Bauansparprogramm
+# Bausparrechner
 
-## Projektübersicht
-Web-App zur Darstellung des Bauansparprogramm-Vorteils für Vertriebsberater in Finanzierungs-/Kundengesprächen. Vergleicht Direktfinanzierung mit der Kombination Bausparen + Finanzierung zur Ausnutzung des niedrigeren garantierten Bauspar-Darlehenszinses.
+## Zusammenfassung der Entstehung
 
-## Technologie-Stack
-- **Framework**: Streamlit
-- **Grafiken**: Plotly
-- **PDF-Export**: ReportLab
-- **Deployment**: Streamlit Cloud
+Die App wurde als neutraler Bausparrechner von Grund auf neu entwickelt. Design und Struktur orientieren sich am Schwesterprojekt `beamtenrechner` (gleiches Farbschema, gleicher Seitenaufbau, gleicher Tech-Stack). Die Berechnungsmodule, Daten und UI-Logik wurden spezifisch für das Thema Bausparen/Finanzierung geschrieben.
 
-## Starten
-```bash
-cd ~/bausparrechner
-pip install -r requirements.txt
-streamlit run app.py
-```
+### Was wurde gemacht
 
-## Kernlogik
-- **Szenario A** (ohne Bausparen): volle Finanzierungssumme zum erwarteten Marktzins.
-- **Szenario B** (mit Bausparen): Vorsparen bis zum Finanzierungsstart → Guthaben als Eigenkapital → Restsumme zum garantierten Bauspar-Darlehenszins.
-- Ersparnis = Zinskosten(A) − Zinskosten(B).
+1. **Projektgerüst angelegt** — Verzeichnisstruktur, Streamlit-Config, requirements, Favicon (aus beamtenrechner übernommen), .gitignore.
+2. **Zinsdaten recherchiert** — Jahresdurchschnitte 2000–2025 für Baufinanzierungszinsen (5–10 J. Zinsbindung), Bauspar-Guthabenzinsen, Bauspar-Darlehenszinsen und EZB-Leitzinsen, fest im Modul `data/zinsen_historisch.py` hinterlegt.
+3. **Berechnungs-Module geschrieben** — vier getrennte Module für Ansparphase, Annuitätendarlehen, staatliche Förderung und den Szenarien-Vergleich.
+4. **Streamlit-App gebaut** — Sidebar-Eingaben, vier Key-Metriken und sechs Tabs (Ersparnis, Start-Szenarien, Cashflow, Zins-Stresstest, Zinshistorie, PDF-Export).
+5. **PDF-Export implementiert** — ReportLab-basiert, mit Deckblatt, Eingaben- und Ergebnis-Tabellen, Förderungs-Informationen.
+6. **Sicherheits-Hardening** — Streamlit bindet ausschließlich auf `127.0.0.1:8501`, Telemetrie (`gatherUsageStats`) deaktiviert, Error-Details auf Stacktrace beschränkt, Toolbar minimal.
+7. **GitHub-Repository** — `lopsti212/bausparrechner` mit initialer Codebasis und Hardening-Commit.
+8. **Cloudflare-Tunnel** — `cloudflared` installiert, Tunnel `bausparrechner` angelegt, DNS-Route für `bausparrechner.lopsticles.com` gesetzt, TLS endet an der Cloudflare-Edge.
+9. **Systemd-Services** — `bausparrechner.service` (Streamlit) und `cloudflared.service` (Tunnel) laufen reboot-fest.
 
 ## Features
-1. **Kernvergleich** mit Ansparverlauf-Chart
-2. **Start-Szenarien** (Verzögerung 0/2/5/10 Jahre)
-3. **Cashflow-Ansicht** (Sparphase + Finanzierungsphase als Timeline)
-4. **Zinsrisiko-Stresstest** (Marktzins 3/5/7/9 %)
-5. **Zinshistorie** 2000-2025 (Bundesbank + EZB)
-6. **Staatliche Förderung** (Wohnungsbauprämie + Arbeitnehmer-Sparzulage)
-7. **PDF-Export** für Kundenberatungen
 
-## Designsystem (wie beamtenrechner)
-- Primärfarbe: `#2e7d32` (Grün)
-- Akzentfarbe: `#c62828` (Rot, "Ohne Bausparen")
-- Neutrale: `#66bb6a`, `#f57c00`, `#90a4ae`
-- Layout wide, minimales CSS, Tabs-Navigation, Plotly mit transparentem Hintergrund
+### Eingaben (Sidebar)
+- **Finanzierungsvorhaben** — geplante Finanzierungssumme, Jahr des Finanzierungsstarts, Laufzeit
+- **Sparphase (Bausparvertrag)** — monatliche Sparrate, Einmalzahlung, Guthabenzins (Default 0,10 %), Darlehenszins (Default 1,40 %)
+- **Marktzins-Annahmen** — aktueller und erwarteter zukünftiger Baufinanzierungszins
+- **Staatliche Förderung** — Familienstand, zu versteuerndes Einkommen, VL-Anteil des Arbeitgebers
+
+### Key-Metriken (direkt unter dem Titel)
+- Sparzeitraum
+- Angespartes Guthaben (inkl. staatlicher Förderung)
+- Monatsrate mit Bausparen (mit Delta zur Direktfinanzierung)
+- Zinsersparnis gesamt über die Finanzierungslaufzeit
+
+### Tabs
+1. **Ersparnis** — Tabelle und Balkendiagramm (Direktfinanzierung vs. Bausparen), Ansparverlauf, Förderungs-Kacheln
+2. **Start-Szenarien** — Auswirkung eines späteren Sparbeginns (heute vs. +2/+5/+10 Jahre)
+3. **Cashflow** — monatliche Belastung über Spar- und Finanzierungsphase als Timeline
+4. **Zins-Stresstest** — Marktzins 3/5/7/9 %, Vergleich der Monatsrate mit/ohne Bausparvertrag
+5. **Zinshistorie** — Liniendiagramm 2000–2025 mit Baufinanzierung, Bauspar-Darlehen, Bauspar-Guthaben, EZB-Leitzins + Min/Max/Durchschnitt
+6. **PDF-Report** — Download eines PDFs mit allen Eingaben, Ergebnissen, Szenarien und Stresstest-Tabelle
+
+### Berechnungslogik
+- **Szenario A** (ohne Bausparen): volle Finanzierungssumme zum zukünftigen Marktzins über die Laufzeit (Annuitätendarlehen).
+- **Szenario B** (mit Bausparen): Guthaben aus Ansparphase + staatliche Förderung → Restsumme zum Bauspar-Darlehenszins über die Laufzeit.
+- **Ersparnis** = Zinskosten(A) − Zinskosten(B).
+- **Förderung** = Wohnungsbauprämie (10 % auf bis zu 700 €/Jahr Single, 1.400 €/Jahr Paar, zvE-Grenze 35.000/70.000 €) + Arbeitnehmer-Sparzulage (9 % auf bis zu 470 €/Jahr VL, zvE-Grenze 40.000/80.000 €).
+
+## Tech-Stack
+- **Framework**: Streamlit
+- **Grafiken**: Plotly (transparente Hintergründe, Streamlit-Theme)
+- **PDF**: ReportLab
+- **Daten**: fest hinterlegt in Python-Modul (offlinefähig)
+
+## Design
+- Primärfarbe Grün `#2e7d32`, Akzentfarbe Rot `#c62828`, Sekundärfarben `#66bb6a`, `#f57c00`, `#90a4ae`
+- Basis-Schriftgröße 13 px, minimales CSS, Tabs-Navigation mit grünem Underline
+- Layout wide, Sidebar expanded
+
+## Deployment
+- **Repository**: https://github.com/lopsti212/bausparrechner
+- **Öffentliche URL**: https://bausparrechner.lopsticles.com
+- **Server-Binding**: `127.0.0.1:8501` (nur über Cloudflare-Tunnel erreichbar)
+- **Systemd-Services**:
+  - `bausparrechner.service` — Streamlit-App
+  - `cloudflared.service` — Cloudflare-Tunnel
+
+### Verwaltungs-Befehle
+```bash
+# App-Status
+systemctl status bausparrechner
+systemctl status cloudflared
+
+# Nach Code-Änderung (git pull) App neu starten
+systemctl restart bausparrechner
+
+# Live-Logs
+journalctl -u bausparrechner -f
+journalctl -u cloudflared -f
+
+# Lokale Entwicklung
+cd /root/bausparrechner && streamlit run app.py
+```
+
+### Updates aus GitHub
+```bash
+cd /root/bausparrechner
+git pull
+systemctl restart bausparrechner
+```
 
 ## Datenquellen
-- Bundesbank MFI-Zinsstatistik (SUD118) — Baufinanzierung 5-10 J.
-- EZB Key Interest Rates History — Leitzinsen
-- Branchendurchschnitte Schwäbisch Hall / Wüstenrot / LBS — Bausparzinsen
+- Bundesbank MFI-Zinsstatistik (Baufinanzierungszinsen 5–10 J. Zinsbindung)
+- EZB-Leitzinsarchiv (Hauptrefinanzierungssatz)
+- Branchendurchschnitte der Bausparkassen (Guthaben- und Darlehenszinsen)
 
-## Förderungs-Rahmendaten (2026)
-- **WoP**: 10 % auf bis zu 700 € (Single) / 1400 € (Paar), zvE-Grenze 35 T€ / 70 T€
-- **AN-Sparzulage**: 9 % auf bis zu 470 €/Jahr VL, zvE-Grenze 40 T€ / 80 T€
+Die App ist vollständig unternehmens­neutral gehalten — es werden keine Anbieter, Tarife oder Marken genannt.
